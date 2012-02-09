@@ -54,18 +54,15 @@ def download_song(song) :
         print "downloading..."
         urllib.urlretrieve(song.get("url"), fs_song_name)
     progress = ((i+1)*1.0/len(song_list))*100
-    #print str(i+1) + ')"' + song_name + '"', "downloaded", str(progress)[:4] + "%"
     print "Song downloaded! Total", str(progress)[:4] + "%"
 
-
-
 access_token = get_access_token()
-song_list = get_songs_list(access_token)
 create_dir()
+song_list = get_songs_list(access_token)
 print "Download " + str(len(song_list)) + " files..."
 for i in range(len(song_list)):
     song = song_list[i]
     download_song(song)
-print os.listdir(".")
+#print os.listdir(".")
 print "\nThe work done!\nFind songs in path:\n" + os.getcwd() + "\\" + folder
 raw_input()
