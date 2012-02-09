@@ -6,13 +6,14 @@ folder = "Songs"
 replace_list = [["&quot;",""], ["&#39;","'"], ["&amp;","&"], ["/",""]]
 
 def get_access_token():
+    import getpass
     login = raw_input("You email:\n")
-    password = raw_input("Your password:\n")
+    password = getpass.getpass("Your password:\n")
     cookies = vk.login(login, password, True)
     access_token = vk.api_login(cookies)
     return access_token
 
-def get_songs_list(access_token) :
+def get_user_songs_list(access_token) :
     user_id = raw_input("User id who provides songs for you (default it's yours):\n")
     response =  vk.method(access_token, "audio.get", {"uid": user_id})
     #print response.get("response")
@@ -49,16 +50,16 @@ def download(url, fs_song_name) :
               p*100, elapsed, est_t, dldsize, size),
         else:
           print "%6i / %-6i bytes" % (dldsize, size)
-    
+
     urllib.urlretrieve(url, fs_song_name, progress)
-    
-def download_song(song) :
+
+def download_song(song, i) :
     song_name = get_song_name(song)
     fs_song_name = folder + "/" + song_name
     try :
         print str(i+1) + ') "' + song_name + '"'
     except :
-        print str(i+1) + ') "' + "Song name can't be shown!"
+        print str(i+1) + ') ' + "Song name can't be shown!"
     if os.path.isfile(fs_song_name):
        url_size = urllib.urlopen(song.get("url")).info()['Content-Length']
        fs_size = os.stat(folder + "/" + song_name).st_size
@@ -76,13 +77,15 @@ def download_song(song) :
     progress = ((i+1)*1.0/len(song_list))*100
     print "Song downloaded! Total", str(progress)[:4] + "%"
 
+def download_all_user_songs(song_list) :
+    print "Download " + str(len(song_list)) + " files..."
+    for i in range(len(song_list)):
+        song = song_list[i]
+        download_song(song, i)
+    print "\nThe work done!\nFind songs in path:\n" + os.getcwd() + "\\" + folder
+
 access_token = get_access_token()
 create_dir()
-song_list = get_songs_list(access_token)
-print "Download " + str(len(song_list)) + " files..."
-for i in range(len(song_list)):
-    song = song_list[i]
-    download_song(song)
-#print os.listdir(".")
-print "\nThe work done!\nFind songs in path:\n" + os.getcwd() + "\\" + folder
+song_list = get_user_songs_list(access_token)
+download_all_user_songs(song_list)
 raw_input()
