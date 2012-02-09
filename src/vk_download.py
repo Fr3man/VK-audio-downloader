@@ -32,6 +32,26 @@ def get_song_name(song) :
         song_name = song_name.replace(pair[0],pair[1])
     return song_name
 
+def download(url, fs_song_name) :
+    import urllib, time
+    start_t = time.time()
+
+    def progress(bl, blsize, size):
+        dldsize = min(bl*blsize, size)
+        if size != -1:
+          p = float(dldsize) / size
+          try:
+            elapsed = time.time() - start_t
+            est_t = elapsed / p - elapsed
+          except:
+            est_t = 0
+          print "%6.2f %% %6.0f s %6.0f s %6i / %-6i bytes\r" % (
+              p*100, elapsed, est_t, dldsize, size),
+        else:
+          print "%6i / %-6i bytes" % (dldsize, size)
+    
+    urllib.urlretrieve(url, fs_song_name, progress)
+    
 def download_song(song) :
     song_name = get_song_name(song)
     fs_song_name = folder + "/" + song_name
@@ -45,14 +65,14 @@ def download_song(song) :
        #print "url_size = " + str(url_size) + "; fs_size = " + str(fs_size)
        if str(url_size) > str(fs_size):
            print "need download..."
-           urllib.urlretrieve(song.get("url"), fs_song_name)
+           download(song.get("url"), fs_song_name)
        else:
            print "already downloaded!"
            return
     else:
         pass
         print "downloading..."
-        urllib.urlretrieve(song.get("url"), fs_song_name)
+        download(song.get("url"), fs_song_name)
     progress = ((i+1)*1.0/len(song_list))*100
     print "Song downloaded! Total", str(progress)[:4] + "%"
 
