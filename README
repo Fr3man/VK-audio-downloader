@@ -1,0 +1,16 @@
+Welcome to open-source VK audio downloader!
+This command-line utility can help you easy to download music from vk.com.
+
+At this moment just a few functions available! But it will be growing up!
+Almost all exceptions are NOT caught yet!)) Be careful!!
+
+Requirements:
+1. Windows NT
+2. Python 2.7
+
+Installation:
+1. Copy files on your PC
+2. Double-click on "run.bat" file or "vk_download.py" file
+
+If you want to tell me something, please email me aleksaander@ya.ru.
+Enjoy!
