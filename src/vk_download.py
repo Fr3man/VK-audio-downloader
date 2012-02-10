@@ -9,6 +9,7 @@ def get_access_token():
     import getpass
     login = raw_input("You email:\n")
     password = getpass.getpass("Your password:\n")
+    print "wait..."
     cookies = vk.login(login, password, True)
     access_token = vk.api_login(cookies)
     return access_token
@@ -50,9 +51,9 @@ def download(url, fs_song_name) :
               p*100, elapsed, est_t, dldsize, size),
         else:
           print "%6i / %-6i bytes" % (dldsize, size)
-
+    
     urllib.urlretrieve(url, fs_song_name, progress)
-
+    
 def download_song(song, i) :
     song_name = get_song_name(song)
     fs_song_name = folder + "/" + song_name
@@ -74,18 +75,118 @@ def download_song(song, i) :
         pass
         print "downloading..."
         download(song.get("url"), fs_song_name)
+        print " "*60 +"\r"
     progress = ((i+1)*1.0/len(song_list))*100
-    print "Song downloaded! Total", str(progress)[:4] + "%"
+    print "Song downloaded! Total download rate", str(progress)[:4] + "%"
 
-def download_all_user_songs(song_list) :
+def download_songs_list(song_list) :
     print "Download " + str(len(song_list)) + " files..."
     for i in range(len(song_list)):
         song = song_list[i]
         download_song(song, i)
     print "\nThe work done!\nFind songs in path:\n" + os.getcwd() + "\\" + folder
 
+def get_song_numbers_from_input (input) :
+    numbers = input.split()
+    if len(numbers) == 0 :
+        return 0
+    else :
+        return numbers
+
+def search_user_songs(song_list) :
+    def get_handy_song_list(song_list) :
+        handy_song_list = []
+        for song in song_list :
+            handy_song_list.append({"song_name" : get_song_name(song), "url" : song.get("url")})
+        return handy_song_list
+
+    def get_search_result(song_list, search_str) :
+        search_result = []
+        for song in song_list:
+            if search_str in get_song_name(song) :
+                search_result.append(song)
+        return search_result
+
+    def print_search_result(search_result) :
+        print "Search result:"
+        i = 0
+        for song in search_result :
+            i += 1
+            try :
+                print "%i) %s" % (i, get_song_name(song))
+            except :
+                print "%i) %s" % (i, "Song name can't be shown!")
+
+
+
+    #handy_song_list = get_handy_song_list(song_list)
+    input = raw_input("Put search string:\n")
+    search_result = get_search_result(song_list, input)
+    print_search_result(search_result)
+
+
+    menu = """
+Put number of what you want:
+1. Download these songs
+2. Put spaces separated songs numbers to download
+3. New search
+4. Exit
+"""
+    while True :
+        input = raw_input(menu)
+        if input == str(1) :
+            download_songs_list(search_result)
+        elif input == str(2) :
+            input_numbers = raw_input("Put space separated songs numbers to download:\n")
+            song_number_list = get_song_numbers_from_input (input_numbers)
+            download_list = [search_result[int(str_num)-1] for str_num in song_number_list]
+            download_songs_list(download_list)
+            work_with_user_song_list(song_list)
+        elif input == str(3) :
+            search_user_songs(song_list)
+        elif input == str(4) :
+            exit("Bye")
+        else :
+            print ("Wrong input!")
+            continue
+
+
+def work_with_user_song_list(song_list) :
+    menu = """
+Put number of what you want:
+1. Download all user's songs
+2. Download by numbers
+3. Search songs
+4. View user's songs
+5. Exit
+"""
+
+    while True :
+        input = raw_input(menu)
+        if input == str(1) :
+            download_songs_list(song_list)
+        elif input == str(2) :
+            input_numbers = raw_input("Put space separated songs numbers to download:\n")
+            song_number_list = get_song_numbers_from_input (input_numbers)
+            download_list = [song_list[int(str_num)-1] for str_num in song_number_list]
+            download_songs_list(download_list)
+        elif input == str(3) :
+            search_user_songs(song_list)
+        elif input == str(4) :
+            for i, song in enumerate(song_list) :
+                try :
+                    print "%i) %s" % (i+1, get_song_name(song))
+                except :
+                    print "%i) %s" % (i+1, "Song name can't be shown!")
+        elif input == str(5) :
+            exit("Bye")
+        else :
+            print ("Wrong input!")
+            continue
+
 access_token = get_access_token()
 create_dir()
 song_list = get_user_songs_list(access_token)
-download_all_user_songs(song_list)
+work_with_user_song_list(song_list)
+#download_songs_list(song_list)
 raw_input()
