@@ -21,6 +21,12 @@ def get_user_songs_list(access_token) :
     song_list = response.get("response")
     return song_list
 
+def get_search_songs_list(access_token, search_str) :
+    response =  vk.method(access_token, "audio.search", {"q": search_str, "count": 100})
+    #print response.get("response")
+    song_list = response.get("response")[1:]
+    return song_list
+
 def create_dir() :
     if not os.path.exists(folder):
         os.mkdir(folder)
@@ -93,12 +99,14 @@ def get_song_numbers_from_input (input) :
     else :
         return numbers
 
+def print_song_list(song_list) :
+    for i, song in enumerate(song_list) :
+        try :
+            print "%i) %s" % (i+1, get_song_name(song))
+        except :
+            print "%i) %s" % (i+1, "Song name can't be shown!")
+
 def search_user_songs(song_list) :
-    def get_handy_song_list(song_list) :
-        handy_song_list = []
-        for song in song_list :
-            handy_song_list.append({"song_name" : get_song_name(song), "url" : song.get("url")})
-        return handy_song_list
 
     def get_search_result(song_list, search_str) :
         search_result = []
@@ -107,22 +115,11 @@ def search_user_songs(song_list) :
                 search_result.append(song)
         return search_result
 
-    def print_search_result(search_result) :
-        print "Search result:"
-        i = 0
-        for song in search_result :
-            i += 1
-            try :
-                print "%i) %s" % (i, get_song_name(song))
-            except :
-                print "%i) %s" % (i, "Song name can't be shown!")
-
-
-
     #handy_song_list = get_handy_song_list(song_list)
     input = raw_input("Put search string:\n")
     search_result = get_search_result(song_list, input)
-    print_search_result(search_result)
+    print "Search result:"
+    print_song_list(search_result)
 
 
     menu = """
@@ -158,7 +155,8 @@ Put number of what you want:
 2. Download by numbers
 3. Search songs
 4. View user's songs
-5. Exit
+5. Main menu
+6. Exit
 """
 
     while True :
@@ -173,20 +171,63 @@ Put number of what you want:
         elif input == str(3) :
             search_user_songs(song_list)
         elif input == str(4) :
-            for i, song in enumerate(song_list) :
-                try :
-                    print "%i) %s" % (i+1, get_song_name(song))
-                except :
-                    print "%i) %s" % (i+1, "Song name can't be shown!")
+            print_song_list(song_list)
         elif input == str(5) :
+            break
+        elif input == str(6) :
             exit("Bye")
         else :
             print ("Wrong input!")
             continue
 
+def work_with_global_search_song_list(song_list) :
+
+    print "Global search result:"
+    print_song_list(song_list)
+
+    menu = """
+Put number of what you want:
+1. Download by numbers
+2. Main menu
+3. Exit
+"""
+
+    while True :
+        input = raw_input(menu)
+        if input == str(1) :
+            input_numbers = raw_input("Put space separated songs numbers to download:\n")
+            song_number_list = get_song_numbers_from_input (input_numbers)
+            download_list = [song_list[int(str_num)-1] for str_num in song_number_list]
+            download_songs_list(download_list)
+        elif input == str(2) :
+            break
+        elif input == str(3) :
+            exit("Bye")
+        else :
+            print ("Wrong input!")
+            continue
+
+
 access_token = get_access_token()
 create_dir()
-song_list = get_user_songs_list(access_token)
-work_with_user_song_list(song_list)
-#download_songs_list(song_list)
-raw_input()
+while True:
+    music_menu = """
+Where would do like to search:
+1. Everywhere
+2. Certain user
+3. Exit
+"""
+    input = raw_input(music_menu)
+    if input == str(1):
+        search_str = raw_input("Put search string:\n")
+        song_list = get_search_songs_list(access_token, search_str)
+        work_with_global_search_song_list(song_list)
+    elif input == str(2):
+        song_list = get_user_songs_list(access_token)
+        work_with_user_song_list(song_list)
+    elif input == str(3):
+        exit("Bye")
+    else :
+        print ("Wrong input! Put the number:")
+        continue
+raw_input("Press Enter to Exit")
