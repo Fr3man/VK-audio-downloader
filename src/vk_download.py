@@ -1,7 +1,7 @@
 # -*- coding: utf8 -*-
 __author__ = 'akonovalov'
 import vk_api as vk
-import cfg, os, urllib
+import cfg, os, urllib, re
 folder = "Songs"
 replace_list = [["&quot;",""], ["&#39;","'"], ["&amp;","&"], ["/",""]]
 
@@ -57,9 +57,9 @@ def download(url, fs_song_name) :
               p*100, elapsed, est_t, dldsize, size),
         else:
           print "%6i / %-6i bytes" % (dldsize, size)
-    
+
     urllib.urlretrieve(url, fs_song_name, progress)
-    
+
 def download_song(song, i) :
     song_name = get_song_name(song)
     fs_song_name = folder + "/" + song_name
@@ -82,14 +82,14 @@ def download_song(song, i) :
         print "downloading..."
         download(song.get("url"), fs_song_name)
         print " "*60 +"\r"
-    progress = ((i+1)*1.0/len(song_list))*100
-    print "Song downloaded! Total download rate", str(progress)[:4] + "%"
 
 def download_songs_list(song_list) :
     print "Download " + str(len(song_list)) + " files..."
     for i in range(len(song_list)):
         song = song_list[i]
         download_song(song, i)
+        progress = ((i+1)*1.0/len(song_list))*100
+        print "Song downloaded! Total download rate", str(progress)[:4] + "%"
     print "\nThe work done!\nFind songs in path:\n" + os.getcwd() + "\\" + folder
 
 def get_song_numbers_from_input (input) :
@@ -115,7 +115,6 @@ def search_user_songs(song_list) :
                 search_result.append(song)
         return search_result
 
-    #handy_song_list = get_handy_song_list(song_list)
     input = raw_input("Put search string:\n")
     search_result = get_search_result(song_list, input)
     print "Search result:"
@@ -165,7 +164,11 @@ Put number of what you want:
             download_songs_list(song_list)
         elif input == str(2) :
             input_numbers = raw_input("Put space separated songs numbers to download:\n")
-            song_number_list = get_song_numbers_from_input (input_numbers)
+            if re.match("^[\d ]+$", input_numbers):
+                song_number_list = get_song_numbers_from_input (input_numbers)
+            else:
+                print ("Wrong input!")
+                continue
             download_list = [song_list[int(str_num)-1] for str_num in song_number_list]
             download_songs_list(download_list)
         elif input == str(3) :
@@ -180,32 +183,50 @@ Put number of what you want:
             print ("Wrong input!")
             continue
 
-def work_with_global_search_song_list(song_list) :
+def work_with_global_search(access_token) :
 
-    print "Global search result:"
-    print_song_list(song_list)
+    while True:
 
-    menu = """
+        search_str = raw_input("Put search string:\n")
+        search_str = search_str.decode('cp1251',errors='ignore')
+        search_str = search_str.encode('utf8', errors='ignore')
+        song_list = get_search_songs_list(access_token, search_str)
+
+        print "Global search result:"
+        if len(song_list) == 0:
+            print "Not found!"
+            return
+        else:
+            print_song_list(song_list)
+
+        menu = """
 Put number of what you want:
 1. Download by numbers
 2. Main menu
-3. Exit
+3. New search
+4. Exit
 """
 
-    while True :
-        input = raw_input(menu)
-        if input == str(1) :
-            input_numbers = raw_input("Put space separated songs numbers to download:\n")
-            song_number_list = get_song_numbers_from_input (input_numbers)
-            download_list = [song_list[int(str_num)-1] for str_num in song_number_list]
-            download_songs_list(download_list)
-        elif input == str(2) :
-            break
-        elif input == str(3) :
-            exit("Bye")
-        else :
-            print ("Wrong input!")
-            continue
+        while True :
+            input = raw_input(menu)
+            if input == str(1) :
+                input_numbers = raw_input("Put space separated songs numbers to download:\n")
+                if re.match("^[\d ]+$", input_numbers):
+                    song_number_list = get_song_numbers_from_input (input_numbers)
+                else:
+                    print ("Wrong input!")
+                    continue
+                download_list = [song_list[int(str_num)-1] for str_num in song_number_list]
+                download_songs_list(download_list)
+            elif input == str(2) :
+                return
+            elif input == str(3) :
+                break
+            elif input == str(4) :
+                exit("Bye")
+            else :
+                print ("Wrong input!")
+                continue
 
 
 access_token = get_access_token()
@@ -219,9 +240,7 @@ Where would do like to search:
 """
     input = raw_input(music_menu)
     if input == str(1):
-        search_str = raw_input("Put search string:\n")
-        song_list = get_search_songs_list(access_token, search_str)
-        work_with_global_search_song_list(song_list)
+        work_with_global_search(access_token)
     elif input == str(2):
         song_list = get_user_songs_list(access_token)
         work_with_user_song_list(song_list)
