@@ -29,7 +29,8 @@ def login(login, password, use_ini = True) : # Получение Cookies remixs
 	try:
 		if login_ini == 0 and use_ini == True:
 			if check_sid(sid) == True:
-				print 'VK: sid in config'
+				#print 'VK: sid in config'
+				print 'please wait...'
 				return sid
 			else :
 				print 'VK: relogin'
@@ -138,7 +139,8 @@ def api_login(sid, login = None, use_ini = True) : # Получение токе
 							settings.update({login : account_settings})
 							cfg.update(settings)
 
-						print 'API: login'
+						#print 'API: login'
+						print 'login success'
 						return token
 			else :
 				reg='\?hash=(.*?)&'
@@ -175,7 +177,8 @@ def api_login(sid, login = None, use_ini = True) : # Получение токе
 								settings.update({login : account_settings})
 								cfg.update(settings)
 
-							print 'API: login'
+							#print 'API: login'
+							print 'login success'
 							return token
 	except Exception, detail:
 		print "def api_login:", detail

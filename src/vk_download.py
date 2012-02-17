@@ -1,9 +1,10 @@
 # -*- coding: utf8 -*-
-__author__ = 'akonovalov'
+__author__ = 'aleksaander@ya.ru'
 import vk_api as vk
 import cfg, os, urllib, re
 folder = "Songs"
-replace_list = [["&quot;",""], ["&#39;","'"], ["&amp;","&"], ["/",""]]
+replace_list = [["&quot;",""], ["&#39;","'"], ["&amp;","&"], ["/",""],["|",""]]
+GLOBAL_SEARCH_COUNT = 50
 
 def get_access_token():
     import getpass
@@ -22,7 +23,7 @@ def get_user_songs_list(access_token) :
     return song_list
 
 def get_search_songs_list(access_token, search_str) :
-    response =  vk.method(access_token, "audio.search", {"q": search_str, "count": 100})
+    response =  vk.method(access_token, "audio.search", {"q": search_str, "count": GLOBAL_SEARCH_COUNT})
     #print response.get("response")
     song_list = response.get("response")[1:]
     return song_list
@@ -39,6 +40,11 @@ def get_song_name(song) :
     for pair in replace_list:
         song_name = song_name.replace(pair[0],pair[1])
     return song_name
+
+def get_song_duration(song) :
+    drt = song.get("duration")
+    drt = "%i:%02i" % (int(drt)/60, int(drt) % 60)
+    return drt
 
 def download(url, fs_song_name) :
     import urllib, time
@@ -102,7 +108,7 @@ def get_song_numbers_from_input (input) :
 def print_song_list(song_list) :
     for i, song in enumerate(song_list) :
         try :
-            print "%i) %s" % (i+1, get_song_name(song))
+            print "%i) %s %s" % (i+1, get_song_name(song), get_song_duration(song))
         except :
             print "%i) %s" % (i+1, "Song name can't be shown!")
 
